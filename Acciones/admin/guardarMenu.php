@@ -6,51 +6,20 @@ $res = ['exito'=>false, 'msg'=>'Error permisos'];
 
 if($session->activa() && $session->getRolActivo() == 1){
     $abmMenu = new abmMenu();
-    $abmMenuRol = new abmMenuRol();
-    $exito = false;
-    $idMenu = null;
-
     
     if($datos['accion'] == 'nuevo'){
-        if($abmMenu->alta($datos)){
-            
-            $busqueda = $abmMenu->buscar(['menombre'=>$datos['menombre'], 'medescripcion'=>$datos['medescripcion']]);
-            if(count($busqueda) > 0){
-                
-                $nuevoMenu = end($busqueda); 
-                $idMenu = $nuevoMenu->getIdMenu();
-                $exito = true;
-            }
+        // El alta ahora se encarga de crear y asignar roles si vienen
+        if($abmMenu->alta($datos)){ 
+            $res = ['exito'=>true, 'msg'=>'Menú creado correctamente'];
         }
     } elseif($datos['accion'] == 'editar'){
+        // La modificación se encarga de actualizar datos y roles
         if($abmMenu->modificacion($datos)){
-            $idMenu = $datos['idmenu'];
-            $exito = true;
+            $res = ['exito'=>true, 'msg'=>'Menú modificado correctamente'];
         }
     }
-
-    // catualizar roles
-    if($exito && $idMenu != null){
-        
-        $rolesActuales = $abmMenuRol->buscar(['idmenu' => $idMenu]);
-        foreach($rolesActuales as $mr){
-            $mr->eliminar(); 
-        }
-
-        
-        if(isset($datos['roles']) && is_array($datos['roles'])){
-            foreach($datos['roles'] as $idRol){
-                $objMenu = new Menu();
-                $objMenu->setear($idMenu, null, null, null, null);
-                
-                $objRol = new Rol();
-                $objRol->setear($idRol, null);
-                
-                $abmMenuRol->alta(['objMenu' => $objMenu, 'objRol' => $objRol]);
-            }
-        }
-        $res = ['exito'=>true, 'msg'=>'Menú y roles actualizados'];
-    } else {
+    
+    if(!$res['exito']){
         $res['msg'] = 'Error al guardar datos del menú';
     }
 }
