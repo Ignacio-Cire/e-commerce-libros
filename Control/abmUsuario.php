@@ -1,8 +1,13 @@
+
 <?php
+
+
 class abmUsuario {
+
     public function buscar($param){
         $where = " true ";
         if ($param<>NULL){
+
             if  (isset($param['idusuario']))
                 $where.=" and idusuario =".$param['idusuario'];
             if  (isset($param['usnombre']))
@@ -18,11 +23,49 @@ class abmUsuario {
 
     public function alta($param){
         $resp = false;
-        $obj = new Usuario();
-       
-        $obj->setear(null, $param['usnombre'], $param['uspass'], $param['usmail'], null);
-        if ($obj->insertar()){ $resp = true; }
+        
+        // 1. Verificamos si el usuario ya existe , esto movi del accion
+        $existe = $this->buscar(['usnombre' => $param['usnombre']]);
+        
+        if(count($existe) == 0){
+            $obj = new Usuario();
+            
+            // 2. Encriptamos la contraseña AQUÍ --> esto tambien movi del accion
+          
+            $passEncriptada = md5($param['uspass']); 
+            
+            $obj->setear(null, $param['usnombre'], $passEncriptada, $param['usmail'], null);
+            
+            if ($obj->insertar()){ 
+                $resp = true; 
+                
+                // 3. Asignar el Rol por defecto (Cliente / 2)
+                // Necesitamos el ID del usuario recién creado
+                // (Como insertar no devuelve ID, lo buscamos)
+                $nuevoUserArr = $this->buscar(['usnombre' => $param['usnombre']]);
+                
+                if(count($nuevoUserArr) > 0){
+                    $nuevoObjUser = $nuevoUserArr[0];
+                    $idNuevoUsuario = $nuevoObjUser->getIdUsuario();
+                    
+                    // Llamamos a la función privada para asignar rol
+                    $this->asignarRolDefecto($idNuevoUsuario);
+                }
+            }
+        }
         return $resp;
+    }
+
+
+    // Función auxiliar privada para conectar con el otro ABM
+    private function asignarRolDefecto($idUsuario){
+        $abmRol = new abmUsuarioRol();
+        // Le pasamos los IDs crudos, que es lo que tu ABM Rol espera
+        $datosRol = [
+            'idusuario' => $idUsuario,
+            'idrol' => 2 // 2 es Cliente por defecto
+        ];
+        $abmRol->alta($datosRol);
     }
 
     public function baja($param){ 

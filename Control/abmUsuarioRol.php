@@ -14,32 +14,36 @@ class abmUsuarioRol {
     }
 
     
-    public function alta($param){
+public function alta($param){
         $resp = false;
         
-        // 1. Validar: ¿Ya tiene ese rol? (Regla de Negocio)
-        // Usamos nuestro propio método buscar
-        $rolEncontrado = this->buscar([
-            'idusuario' => $param['idusuario'], 
-            'idrol' => $param['idrol']
-        ]);
-
-        // Si NO existe (count es 0), procedemos
-        if (count($rolEncontrado) == 0) {
+        // Verificamos que vengan los datos necesarios
+        if(isset($param['idusuario']) && isset($param['idrol'])){
             
-            // 2. Crear los objetos (El ABM se encarga de armarlos)
-            $objUser = new Usuario();
-            $objUser->setear($param['idusuario'], null, null, null, null);
-            
-            $objRol = new Rol();
-            $objRol->setear($param['idrol'], null);
+            // 1. Validar: ¿Ya tiene ese rol?
+            $rolEncontrado = $this->buscar([
+                'idusuario' => $param['idusuario'], 
+                'idrol' => $param['idrol']
+            ]);
 
-            $objUsuarioRol = new UsuarioRol();
-            $objUsuarioRol->setear($objUser, $objRol);
+            // Si NO existe (count es 0), procedemos
+            if (count($rolEncontrado) == 0) {
+                
+                // 2. Crear los objetos AQUI adentro
+                $objUser = new Usuario();
+                $objUser->setear($param['idusuario'], null, null, null, null);
+                
+                $objRol = new Rol();
+                $objRol->setear($param['idrol'], null);
 
-            // 3. Insertar
-            if ($objUsuarioRol->insertar()){
-                $resp = true;
+                $objUsuarioRol = new UsuarioRol();
+                // Ojo aquí: setear espera OBJETOS, no IDs. Por eso los creamos arriba.
+                $objUsuarioRol->setear($objUser, $objRol);
+
+                // 3. Insertar
+                if ($objUsuarioRol->insertar()){
+                    $resp = true;
+                }
             }
         }
         

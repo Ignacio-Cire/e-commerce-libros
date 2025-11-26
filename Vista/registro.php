@@ -1,8 +1,9 @@
+
 <?php include_once('Estructura/cabecera.php'); ?>
 <div class="d-flex justify-content-center mt-5">
     <div class="card p-4 shadow" style="width:400px">
         <h3 class="text-center">Registro</h3>
-        <form action="../Acciones/registro/accionRegistro.php" method="post">
+        <form action="http://localhost/proyecto/Acciones/registro/accionRegistro.php " method="post">
             <div class="mb-3">
                 <label>Usuario</label>
                 <input type="text" name="usnombre" class="form-control" required>
